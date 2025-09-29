@@ -15,18 +15,18 @@ struct Vertex
 // Assignment 1 object 1 -- white triangle (change these vertex colours from red to white)!!!
 static const Vertex vertices_white[3] =
 {
-    { { -0.6f, -0.4f }, { 1.0f, 0.0f, 0.0f } },
-    { {  0.6f, -0.4f }, { 1.0f, 0.0f, 0.0f } },
-    { {   0.f,  0.6f }, { 1.0f, 0.0f, 0.0f } }
+    { { -0.6f, -0.4f }, { 1.0f, 1.0f, 1.0f } },
+    { {  0.6f, -0.4f }, { 1.0f, 1.0f, 1.0f } },
+    { {   0.f,  0.6f }, { 1.0f, 1.0f, 1.0f } }
 };
 
 // Assignment 1 object 2 -- rainbow triangle (done for you)
-//static const Vertex vertices_rainbow[3] =
-//{
-//    { { -0.6f, -0.4f }, { 1.0f, 0.0f, 0.0f } },
-//    { {  0.6f, -0.4f }, { 0.0f, 1.0f, 0.0f } },
-//    { {   0.f,  0.6f }, { 0.0f, 0.0f, 1.0f } }
-//};
+static const Vertex vertices_rainbow[3] =
+{
+    { { -0.6f, -0.4f }, { 1.0f, 0.0f, 0.0f } },
+    { {  0.6f, -0.4f }, { 0.0f, 1.0f, 0.0f } },
+    { {   0.f,  0.6f }, { 0.0f, 0.0f, 1.0f } }
+};
 
 static const Vector2 vertex_positions[3] =
 {
@@ -103,7 +103,7 @@ int main()
     Matrix world = world = MatrixIdentity();
 
     // Generally you want to Scale * Rotate * Translate (order matters)!!!
-    world = MatrixRotateZ(30.0f * DEG2RAD) * MatrixTranslate(0.5f, 0.0f, 0.0f);
+  /*  world = MatrixRotateZ(30.0f * DEG2RAD) * MatrixTranslate(0.5f, 0.0f, 0.0f);*/
 
     /* Loop until the user closes the window */
     while (!WindowShouldClose())
@@ -112,9 +112,9 @@ int main()
             SetWindowShouldClose(true);
 
         // Colors are represented as fractions between 0.0 and 1.0, so convert using a colour-picker tool accordingly!
-        float r = 239.0f / 255.0f;
-        float g = 136.0f / 255.0f;
-        float b = 190.0f / 255.0f;
+        float r = 30.0f / 255.0f;
+        float g = 5.0f / 255.0f;
+        float b = 66.0f / 255.0f;
         float a = 1.0f;
 
         // Time in seconds since GLFW was initialized (use this with functions like sinf and cosf for repeating animations)
@@ -131,7 +131,8 @@ int main()
 
         switch (object_index)
         {
-        case 0:
+        case 0: 
+        {
 			// White triangle
             glUseProgram(a1_tri_shader);
             glUniform3f(u_color, 1.0f, 1.0f, 1.0f);
@@ -139,8 +140,10 @@ int main()
             glBindVertexArray(vertex_array_white);
             glDrawArrays(GL_TRIANGLES, 0, 3);
             break;
+        }
 
-        case 1:
+        case 1: 
+        {
 			// Rainbow triangle
             glUseProgram(a1_tri_shader);
             glUniform3f(u_color, 1.0f, 1.0f, 1.0f);
@@ -148,8 +151,10 @@ int main()
             glBindVertexArray(vertex_array_rainbow);
             glDrawArrays(GL_TRIANGLES, 0, 3);
             break;
+        }
 
         case 2:
+            {
             // colour changing triangle
             float r = (sinf(tt * 2.0f) + 1.0f) * 0.5f;
             float g = (sinf(tt * 2.0f + 2.094f) + 1.0f) * 0.5f; 
@@ -161,18 +166,24 @@ int main()
             glBindVertexArray(vertex_array_rainbow);
             glDrawArrays(GL_TRIANGLES, 0, 3);
             break;
+            }
 
         case 3:
-			float X = sinf(tt) * 0.5f;
-			world = MatrixTranslate(X, 0.0f, 0.0f);
+        {
+			// moving triangle
+			float x = sinf(tt) * 0.5f;
+			world = MatrixTranslate(x, 0.0f, 0.0f);
             glUseProgram(a1_tri_shader);
             glUniform3f(u_color, 0.4, 0.4f, 0.4f);
             glUniformMatrix4fv(u_world, 1, GL_FALSE, MatrixToFloat(world));
             glBindVertexArray(vertex_array_rainbow);
             glDrawArrays(GL_TRIANGLES, 0, 3);
             break;
+        }
 
         case 4:
+        {
+			// rotating triangle
 			world = MatrixRotateZ(tt);
             glUseProgram(a1_tri_shader);
             glUniform3f(u_color, 0.5, 0.5f, 0.5f);
@@ -180,6 +191,7 @@ int main()
             glBindVertexArray(vertex_array_rainbow);
             glDrawArrays(GL_TRIANGLES, 0, 3);
             break;
+        }
         }
 
         // Called at end of the frame to swap buffers and update input
