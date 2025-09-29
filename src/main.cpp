@@ -132,33 +132,39 @@ int main()
         switch (object_index)
         {
         case 0:
+			// White triangle
             glUseProgram(a1_tri_shader);
             glUniform3f(u_color, 1.0f, 1.0f, 1.0f);
-
-            // Must use MatrixToFloat to send mat4 since raylib Matrix memory is in a different layout than glsl mat4
             glUniformMatrix4fv(u_world, 1, GL_FALSE, MatrixToFloat(world));
-
             glBindVertexArray(vertex_array_white);
             glDrawArrays(GL_TRIANGLES, 0, 3);
             break;
 
         case 1:
+			// Rainbow triangle
             glUseProgram(a1_tri_shader);
-            glUniform3f(u_color, 0.8, 0.8f, 0.8f);
+            glUniform3f(u_color, 1.0f, 1.0f, 1.0f);
             glUniformMatrix4fv(u_world, 1, GL_FALSE, MatrixToFloat(world));
             glBindVertexArray(vertex_array_rainbow);
             glDrawArrays(GL_TRIANGLES, 0, 3);
             break;
 
         case 2:
+            // colour changing triangle
+            float r = (sinf(tt * 2.0f) + 1.0f) * 0.5f;
+            float g = (sinf(tt * 2.0f + 2.094f) + 1.0f) * 0.5f; 
+            float b = (sinf(tt * 2.0f + 4.188f) + 1.0f) * 0.5f; 
             glUseProgram(a1_tri_shader);
-            glUniform3f(u_color, 0.6, 0.6f, 0.6f);
+            glUseProgram(a1_tri_shader);
+            glUniform3f(u_color, r, g, b);
             glUniformMatrix4fv(u_world, 1, GL_FALSE, MatrixToFloat(world));
             glBindVertexArray(vertex_array_rainbow);
             glDrawArrays(GL_TRIANGLES, 0, 3);
             break;
 
         case 3:
+			float X = sinf(tt) * 0.5f;
+			world = MatrixTranslate(X, 0.0f, 0.0f);
             glUseProgram(a1_tri_shader);
             glUniform3f(u_color, 0.4, 0.4f, 0.4f);
             glUniformMatrix4fv(u_world, 1, GL_FALSE, MatrixToFloat(world));
@@ -167,6 +173,7 @@ int main()
             break;
 
         case 4:
+			world = MatrixRotateZ(tt);
             glUseProgram(a1_tri_shader);
             glUniform3f(u_color, 0.5, 0.5f, 0.5f);
             glUniformMatrix4fv(u_world, 1, GL_FALSE, MatrixToFloat(world));
