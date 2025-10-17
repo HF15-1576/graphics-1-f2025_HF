@@ -12,6 +12,8 @@
 // Hint: if 1 square is 8 vertices, and Assignment 2 requires you to render 8 squares, then 8 squares * 8 vertices per square = 64 vertices;
 // (Consider reserving 64 vertices worth of space if you'd like to fit all your positions in a single vertex array)
 
+static const int line_vertex_count = 8;
+
 static const float square_colors[8][3] = {
     {1.0f, 0.0f, 0.0f}, // Red
     {2.0f, 0.0f, 1.0f}, // Pinkish
@@ -23,27 +25,12 @@ static const float square_colors[8][3] = {
     {0.5f, 0.0f, 2.0f}  // Purple
 };
 
-static const int line_vertex_count = 8;
-static const Vector2 line_vertex_positions[line_vertex_count]
-{
-    { -1.0f,  -1.0f },   // bottom-left
-    {  1.0f,  -1.0f },   // bottom-right
-
-    {  1.0f, -1.0f },   // bottom-right
-    {  1.0f,  1.0f },   // top-right
-
-    {   1.0f,  1.0f },   // top-right
-    {  -1.0f,  1.0f },   // top-left
-
-    { -1.0f,   1.0f },   // top-left
-    { -1.0f,  -1.0f }    // bottom-left
-};
 
 // Generates vertices for 'count' shrinking squares
 std::vector<Vector2> generateSquares(int count) {
     std::vector<Vector2> vertices;
 
-    // start with the outermost square
+	// square vertice positions (starting from outermost square) used same vertice positions provided in the a2 starter code
     std::vector<Vector2> current = {
         { -1.0f, -1.0f },
         {  1.0f, -1.0f },
@@ -51,19 +38,19 @@ std::vector<Vector2> generateSquares(int count) {
         { -1.0f,  1.0f }
     };
 
+	// Generate 'count' squares
     for (int i = 0; i < count; i++) {
-        // add current square's lines to vertices
         vertices.push_back(current[0]); vertices.push_back(current[1]);
         vertices.push_back(current[1]); vertices.push_back(current[2]);
         vertices.push_back(current[2]); vertices.push_back(current[3]);
         vertices.push_back(current[3]); vertices.push_back(current[0]);
 
-        // compute next square by finding midpoints of current square's edges
+		// Shrink the square by interpolating each vertex towards the next vertex
         std::vector<Vector2> next;
         for (int x = 0; x < 4; x++) {
             Vector2 a = current[x];
             Vector2 b = current[(x + 1) % 4];
-            next.push_back(Vector2Lerp(a, b, 0.5f));
+            next.push_back(Vector2Lerp(a, b, 0.94f));
         }
         current = next;
     }
@@ -82,7 +69,7 @@ int main()
     GLuint a2_lines_shader = CreateProgram(a2_lines_vert, a2_lines_frag);
 
     // Generate 8 shrinking squares
-    const int square_count = 24;
+    const int square_count = 60;
     std::vector<Vector2> allVertices = generateSquares(square_count);
 
     GLuint vbo_line_positions;
