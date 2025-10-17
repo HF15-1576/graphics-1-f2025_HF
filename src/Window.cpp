@@ -13,7 +13,7 @@
 
 struct App
 {
-    GLFWwindow* window = nullptr;
+	GLFWwindow* window = nullptr;
     int keys_prev[KEY_COUNT]{};
     int keys_curr[KEY_COUNT]{};
 } g_app;
@@ -22,7 +22,7 @@ void KeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
 {
     if (action == GLFW_REPEAT) return;
     g_app.keys_curr[key] = action;
-
+    
     // Uncomment to see how key events work!
     //const char* name = glfwGetKeyName(key, scancode);
     //if (action == GLFW_PRESS)
@@ -111,12 +111,12 @@ void CreateWindow(int width, int height, const char* title)
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
+    
     //Note: GLFW joystick initialization may be incredibly *slow* if driver software like Razor Synapse *isn't* running
     // Initialize dinput so imgui call doesn't hang on this mid-frame if we want gamepad support
     if (io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad)
         glfwSetJoystickCallback(nullptr);
-
+    
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(g_app.window, true);
     ImGui_ImplOpenGL3_Init("#version 430");
@@ -178,7 +178,7 @@ bool IsKeyUp(int key)
 
 bool IsKeyPressed(int key)
 {
-    return
+    return 
         g_app.keys_prev[key] == GLFW_PRESS &&
         g_app.keys_curr[key] == GLFW_RELEASE;
 }

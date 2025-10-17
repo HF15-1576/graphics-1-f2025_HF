@@ -40,13 +40,13 @@ int main()
 
     line_vertex_positions2[4] = Vector2Lerp(line_vertex_positions[4], line_vertex_positions[5], 0.5f);
     line_vertex_positions2[5] = Vector2Lerp(line_vertex_positions[6], line_vertex_positions[7], 0.5f);
-
+    
     line_vertex_positions2[6] = Vector2Lerp(line_vertex_positions[6], line_vertex_positions[7], 0.5f);
     line_vertex_positions2[7] = Vector2Lerp(line_vertex_positions[0], line_vertex_positions[1], 0.5f);
     // (For full marks, you need to automate this with loops or recursion for 8 iterations [meaning 8 squares])
 
     CreateWindow(800, 800, "Graphics 1");
-
+    
     // Hint: The a1_triangle shaders handle vertex position AND vertex colour.
     // Vertex colour is needed in order to receive full marks on this assignment!
     GLuint a2_lines_vert = CreateShader(GL_VERTEX_SHADER, "./assets/shaders/a2_lines.vert");
