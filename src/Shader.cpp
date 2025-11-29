@@ -5,6 +5,10 @@
 #include <sstream>
 #include <cassert>
 
+static GLuint f_shader = GL_NONE;
+
+int GetUniformLocation(GLuint shader, const char* name);
+
 GLuint CreateShader(GLint type, const char* path)
 {
     GLuint shader = 0;
@@ -61,6 +65,13 @@ GLuint CreateShader(GLint type, const char* path)
     return shader;
 }
 
+void DestroyShader(GLuint* handle)
+{
+    assert(*handle != GL_NONE);
+    glDeleteShader(*handle);
+    *handle = GL_NONE;
+}
+
 GLuint CreateProgram(GLuint vs, GLuint fs)
 {
     GLuint program = glCreateProgram();
@@ -79,4 +90,85 @@ GLuint CreateProgram(GLuint vs, GLuint fs)
     }
 
     return program;
+}
+
+void DestroyProgram(GLuint* handle)
+{
+    assert(*handle != GL_NONE);
+    glDeleteProgram(*handle);
+    *handle = GL_NONE;
+}
+
+void BeginShader(GLuint shader)
+{
+    assert(f_shader == GL_NONE);
+    glUseProgram(shader);
+    f_shader = shader;
+}
+
+void EndShader()
+{
+    assert(f_shader != GL_NONE);
+    glUseProgram(GL_NONE);
+    f_shader = GL_NONE;
+}
+
+void SendInt(int value, const char* name)
+{
+    int location = GetUniformLocation(f_shader, name);
+    glUniform1i(location, value);
+}
+
+void SendFloat(float value, const char* name)
+{
+    int location = GetUniformLocation(f_shader, name);
+    glUniform1f(location, value);
+}
+
+void SendVec2(Vector2 value, const char* name)
+{
+    int location = GetUniformLocation(f_shader, name);
+    glUniform2f(location, value.x, value.y);
+}
+
+void SendVec3(Vector3 value, const char* name)
+{
+    int location = GetUniformLocation(f_shader, name);
+    glUniform3f(location, value.x, value.y, value.z);
+}
+
+void SendVec4(Vector4 value, const char* name)
+{
+    int location = GetUniformLocation(f_shader, name);
+    glUniform4f(location, value.x, value.y, value.z, value.w);
+}
+
+void SendMat3(Matrix v, const char* name)
+{
+    float arr[9] =
+    {
+        v.m0, v.m1, v.m2,
+        v.m4, v.m5, v.m6,
+        v.m8, v.m9, v.m10
+    };
+
+    int location = GetUniformLocation(f_shader, name);
+    glUniformMatrix3fv(location, 1, GL_FALSE, arr);
+}
+
+void SendMat4(Matrix value, const char* name)
+{
+    int location = GetUniformLocation(f_shader, name);
+    glUniformMatrix4fv(location, 1, GL_FALSE, MatrixToFloat(value));
+}
+
+int GetUniformLocation(GLuint shader, const char* name)
+{
+    GLint location = glGetUniformLocation(shader, name);
+    if (location == -1)
+    {
+        printf("Warning: shader %i failed to send uniform %s\n", shader, name);
+        //assert(false); <-- eventually we might send data to shaders that don't use it
+    }
+    return location;
 }

@@ -123,6 +123,10 @@ void CreateWindow(int width, int height, const char* title)
 
     // Initialize graphics pipeline state
     glEnable(GL_DEPTH_TEST); // Enable depth-testing (occlude overlapping objects)
+
+    glEnable(GL_CULL_FACE); // Disabled by default (OpenGL will draw both front faces and back faces)
+    glFrontFace(GL_CCW);    // "Front-facing triangles have counter-clockwize winding order"
+    glCullFace(GL_BACK);    // "Cull back-facing triangles only"
 }
 
 void SetWindowShouldClose(bool close)

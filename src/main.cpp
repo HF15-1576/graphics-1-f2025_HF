@@ -1,128 +1,100 @@
 #include "Window.h"
 #include "Shader.h"
-#include "raymath.h"
+#include "Mesh.h"
+
 #include <imgui/imgui.h>
 #include <cstddef>
 #include <cstdlib>
 #include <cstdio>
 #include <ctime>
-#include <vector>
 
-// 4 lines in 1 square -- each line has 2 vertices, therefore 8 array elements because 4 lines * 2 vertices per line = 8
-// Hint: if 1 square is 8 vertices, and Assignment 2 requires you to render 8 squares, then 8 squares * 8 vertices per square = 64 vertices;
-// (Consider reserving 64 vertices worth of space if you'd like to fit all your positions in a single vertex array)
-
-static const int line_vertex_count = 8;
-
-static const float square_colors[8][3] = {
-    {1.0f, 0.0f, 0.0f}, // Red
-    {2.0f, 0.0f, 1.0f}, // Pinkish
-    {0.0f, 0.0f, 1.0f}, // Blue
-    {1.0f, 1.0f, 0.0f}, // Yellow
-    {1.0f, 0.0f, 2.0f}, // Magenta
-    {0.0f, 1.0f, 1.0f}, // Cyan
-    {1.0f, 0.5f, 0.0f}, // Orange
-    {0.5f, 0.0f, 2.0f}  // Purple
+enum ShaderType
+{
+    SHADER_POSITION_COLOR,
+    SHADER_TCOORD_COLOR,
+    SHADER_NORMAL_COLOR,
+    SHADER_TYPE_COUNT
 };
 
+enum MeshType
+{
+    // Platonic solids
+    MESH_TETRAHEDRON,
+    MESH_CUBE,
+    MESH_OCTAHEDRON,
+    MESH_DODECAHEDRON,
+    MESH_ICOSAHEDRON,
 
-// Generates vertices for 'count' shrinking squares
-std::vector<Vector2> generateSquares(int count) {
-    std::vector<Vector2> vertices;
+    // Parametric surfaces
+    MESH_PLANE,
+    MESH_SPHERE,
+    MESH_HEMISPHERE,
 
-	// square vertice positions (starting from outermost square) used same vertice positions provided in the a2 starter code
-    std::vector<Vector2> current = {
-        { -1.0f, -1.0f },
-        {  1.0f, -1.0f },
-        {  1.0f,  1.0f },
-        { -1.0f,  1.0f }
-    };
+    // Obj files
+    MESH_HEAD,
 
-	// Generate 'count' squares
-    for (int i = 0; i < count; i++) {
-        vertices.push_back(current[0]); vertices.push_back(current[1]);
-        vertices.push_back(current[1]); vertices.push_back(current[2]);
-        vertices.push_back(current[2]); vertices.push_back(current[3]);
-        vertices.push_back(current[3]); vertices.push_back(current[0]);
-
-		// Shrink the square by interpolating each vertex towards the next vertex
-        std::vector<Vector2> next;
-        for (int x = 0; x < 4; x++) {
-            Vector2 a = current[x];
-            Vector2 b = current[(x + 1) % 4];
-            next.push_back(Vector2Lerp(a, b, 0.94f));
-        }
-        current = next;
-    }
-
-    return vertices;
-}
+    MESH_TYPE_COUNT
+};
 
 int main()
 {
     CreateWindow(800, 800, "Graphics 1");
 
-    // Hint: The a1_triangle shaders handle vertex position AND vertex colour.
-    // Vertex colour is needed in order to receive full marks on this assignment!
-    GLuint a2_lines_vert = CreateShader(GL_VERTEX_SHADER, "./assets/shaders/a2_lines.vert");
-    GLuint a2_lines_frag = CreateShader(GL_FRAGMENT_SHADER, "./assets/shaders/a2_lines.frag");
-    GLuint a2_lines_shader = CreateProgram(a2_lines_vert, a2_lines_frag);
+    Mesh meshes[MESH_TYPE_COUNT];
 
-    // Generate 8 shrinking squares
-    const int square_count = 60;
-    std::vector<Vector2> allVertices = generateSquares(square_count);
+    LoadMeshTetrahedron(&meshes[MESH_TETRAHEDRON]);
+    LoadMeshCube(&meshes[MESH_CUBE]);
+    LoadMeshOctahedron(&meshes[MESH_OCTAHEDRON]);
+    LoadMeshDodecahedron(&meshes[MESH_DODECAHEDRON]);
+    LoadMeshIcosahedron(&meshes[MESH_ICOSAHEDRON]);
 
-    GLuint vbo_line_positions;
-    glGenBuffers(1, &vbo_line_positions);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_line_positions);
-    glBufferData(GL_ARRAY_BUFFER, allVertices.size() * sizeof(Vector2),
-        allVertices.data(), GL_STATIC_DRAW);
-    /*glBufferData(GL_ARRAY_BUFFER, sizeof(line_vertex_positions), line_vertex_positions, GL_STATIC_DRAW);*/
-    /*glBufferData(GL_ARRAY_BUFFER, sizeof(line_vertex_positions2), line_vertex_positions2, GL_STATIC_DRAW);*/
-	// this method above is a bit inefficient since we're creating multiple squares manually so went with an automated approach
-    // Comment/uncomment to see 1st square vs 2nd square.
-    // Your job is to automate the generation of squares so all 8 squares are rendered at once!
+    LoadMeshPlane(&meshes[MESH_PLANE]);
+    LoadMeshSphere(&meshes[MESH_SPHERE]);
+    LoadMeshHemisphere(&meshes[MESH_HEMISPHERE]);
 
-    GLuint vao_line;
-    glGenVertexArrays(1, &vao_line);
-    glBindVertexArray(vao_line);
+    //LoadMeshObj(&meshes[MESH_HEAD], "./assets/meshes/head.obj");
+    LoadMeshObj(&meshes[MESH_HEAD], "./assets/meshes/plane.obj");
+    
+    GLuint position_color_vert = CreateShader(GL_VERTEX_SHADER, "./assets/shaders/position_color.vert");
+    GLuint tcoord_color_vert = CreateShader(GL_VERTEX_SHADER, "./assets/shaders/tcoord_color.vert");
+    GLuint normal_color_vert = CreateShader(GL_VERTEX_SHADER, "./assets/shaders/normal_color.vert");
+    GLuint vertex_color_frag = CreateShader(GL_FRAGMENT_SHADER, "./assets/shaders/vertex_color.frag");
 
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_line_positions);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vector2), 0);
+    GLuint shaders[SHADER_TYPE_COUNT];
+    shaders[SHADER_POSITION_COLOR] = CreateProgram(position_color_vert, vertex_color_frag);
+    shaders[SHADER_TCOORD_COLOR] = CreateProgram(tcoord_color_vert, vertex_color_frag);
+    shaders[SHADER_NORMAL_COLOR] = CreateProgram(normal_color_vert, vertex_color_frag);
 
-    glBindVertexArray(GL_NONE);
-    glBindBuffer(GL_ARRAY_BUFFER, GL_NONE);
-
-    GLint u_color = glGetUniformLocation(a2_lines_shader, "u_color");
-    GLint u_mvp = glGetUniformLocation(a2_lines_shader, "u_mvp");
-
+    int shader_index = 0;
+    int mesh_index = 0;
     while (!WindowShouldClose())
     {
         if (IsKeyPressed(KEY_ESCAPE))
             SetWindowShouldClose(true);
 
-        // Note: change MatrixOrtho's left/right/bottom/top values to modify the extents of your screen!
-        Matrix proj = MatrixOrtho(-1.0f, 1.0f, -1.0f, 1.0f, 0.01f, 100.0f);
-        Matrix view = MatrixLookAt({ 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
+        if (IsKeyPressed(KEY_GRAVE_ACCENT))
+            ++shader_index %= SHADER_TYPE_COUNT;
+
+        if (IsKeyPressed(KEY_TAB))
+            ++mesh_index %= MESH_TYPE_COUNT;
+
+        float tt = Time();
+
+        //Matrix proj = MatrixOrtho(-1.0f, 1.0f, -1.0f, 1.0f, 0.01f, 100.0f);
+        Matrix proj = MatrixPerspective(75.0f * DEG2RAD, WindowWidth() / (float)WindowHeight(), 0.01f, 100.0f);
+        Matrix view = MatrixLookAt({ 0.0f, 0.0f, 5.0f }, { 0.0f, 0.0f, 0.0f }, Vector3UnitY);
+        //Matrix world = MatrixRotateY(tt * 100.0f * DEG2RAD);
         Matrix world = MatrixIdentity();
         Matrix mvp = world * view * proj;
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(a2_lines_shader);
-        glBindVertexArray(vao_line);
-        glLineWidth(3.0f);
-
-        glUniformMatrix4fv(u_mvp, 1, GL_FALSE, MatrixToFloat(mvp));
-
-        // draw each square with different colour
-        for (int i = 0; i < square_count; i++) {
-            int color_idx = i % 8;
-            glUniform3f(u_color, square_colors[color_idx][0], square_colors[color_idx][1], square_colors[color_idx][2]);
-            glDrawArrays(GL_LINES, i * line_vertex_count, line_vertex_count);
-        }
+        BeginShader(shaders[shader_index]);
+            SendMat4(mvp, "u_mvp");
+            DrawMesh(meshes[MESH_PLANE]);
+            //DrawMesh(meshes[mesh_index]);
+        EndShader();
 
         BeginGui();
         //ImGui::ShowDemoWindow(nullptr);
@@ -131,11 +103,16 @@ int main()
         Loop();
     }
 
-    glDeleteVertexArrays(1, &vao_line);
-    glDeleteBuffers(1, &vbo_line_positions);
-    glDeleteProgram(a2_lines_shader);
-    glDeleteShader(a2_lines_frag);
-    glDeleteShader(a2_lines_vert);
+    DestroyShader(&position_color_vert);
+    DestroyShader(&tcoord_color_vert);
+    DestroyShader(&normal_color_vert);
+    DestroyShader(&vertex_color_frag);
+
+    for (int i = 0; i < SHADER_TYPE_COUNT; i++)
+        DestroyProgram(&shaders[i]);
+
+    for (int i = 0; i < MESH_TYPE_COUNT; i++)
+        UnloadMesh(&meshes[i]);
 
     DestroyWindow();
     return 0;
