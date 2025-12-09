@@ -16,7 +16,36 @@ struct App
 	GLFWwindow* window = nullptr;
     int keys_prev[KEY_COUNT]{};
     int keys_curr[KEY_COUNT]{};
+<<<<<<< Updated upstream
+=======
+    float frame_time_begin = 0.0f;
+    float frame_time_end = 0.0f;
+    float frame_time_delta = 0.0f;
+
+    double mouse_prev_x = 0.0;
+    double mouse_prev_y = 0.0;
+    bool mouse_first = true;
+
+    double mouse_delta_x = 0.0;
+    double mouse_delta_y = 0.0;
+>>>>>>> Stashed changes
 } g_app;
+
+void MousePosCallback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (g_app.mouse_first)
+    {
+        g_app.mouse_prev_x = xpos;
+        g_app.mouse_prev_y = ypos;
+        g_app.mouse_first = false;
+    }
+
+    g_app.mouse_delta_x = xpos - g_app.mouse_prev_x;
+    g_app.mouse_delta_y = ypos - g_app.mouse_prev_y;
+
+    g_app.mouse_prev_x = xpos;
+    g_app.mouse_prev_y = ypos;
+}
 
 void KeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -99,6 +128,7 @@ void CreateWindow(int width, int height, const char* title)
     assert(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress));
 
     glfwSetKeyCallback(g_app.window, KeyboardCallback);
+    glfwSetCursorPosCallback(g_app.window, MousePosCallback);
 #ifdef NDEBUG
 #else
     glEnable(GL_DEBUG_OUTPUT);
@@ -207,4 +237,9 @@ int WindowHeight()
     int width, height;
     glfwGetWindowSize(g_app.window, &width, &height);
     return height;
+}
+
+Vector2 GetMouseDelta()
+{
+    return { (float)g_app.mouse_delta_x, (float)g_app.mouse_delta_y };
 }
